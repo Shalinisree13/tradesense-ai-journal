@@ -13,12 +13,15 @@ export default function DashboardLayout({
   const [searchOpen, setSearchOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen bg-[#030712]">
+    <div className="min-h-screen bg-[#030712]">
+      {/* Sidebar handles its own positioning:
+          - Mobile: sticky top header + overlay drawer
+          - Desktop: fixed left sidebar (w-56) */}
       <Sidebar />
 
-      {/* Main content — offset only on md+ where sidebar is fixed */}
-      <div className="flex-1 flex flex-col md:pl-56 min-w-0 w-full">
-        {/* Desktop top header */}
+      {/* Content offset only on desktop to clear the fixed sidebar */}
+      <div className="md:pl-56">
+        {/* Desktop-only top bar */}
         <header className="hidden md:flex h-14 items-center justify-between px-6 bg-[#030712] border-b border-gray-800/40 sticky top-0 z-20">
           <button
             onClick={() => setSearchOpen(true)}
@@ -32,8 +35,8 @@ export default function DashboardLayout({
           </button>
         </header>
 
-        {/* Page content — mobile gets extra top padding for sticky header */}
-        <main className="flex-grow p-4 md:p-6 overflow-y-auto">
+        {/* Page content */}
+        <main className="p-4 md:p-6">
           {children}
         </main>
       </div>
