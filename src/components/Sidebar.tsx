@@ -22,6 +22,7 @@ import {
   Zap,
   FlaskConical,
   Trees,
+  Cpu,
 } from "lucide-react";
 
 const menuItems = [
@@ -32,6 +33,7 @@ const menuItems = [
   { name: "Psychology", href: "/psychology", icon: BrainCircuit },
   { name: "Watchlist", href: "/watchlist", icon: Eye },
   { name: "Pine Script", href: "/pine-script", icon: Trees },
+  { name: "AI Forecast", href: "/ai-forecast", icon: Cpu },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "AI Coach", href: "/ai-coach", icon: MessageSquare },
   { name: "Settings", href: "/settings", icon: Settings },
