@@ -1,10 +1,4 @@
 import { NextResponse } from "next/server";
-import Razorpay from "razorpay";
-
-const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID!,
-  key_secret: process.env.RAZORPAY_KEY_SECRET!,
-});
 
 const PLAN_PRICES: Record<string, { monthly: number; yearly: number; name: string }> = {
   basic:   { monthly: 29900,  yearly: 298800,  name: "TradeSense Basic"   },
@@ -14,6 +8,21 @@ const PLAN_PRICES: Record<string, { monthly: number; yearly: number; name: strin
 
 export async function POST(request: Request) {
   try {
+    // Lazy-load Razorpay inside the handler so it never runs at build time
+    const Razorpay = (await import("razorpay")).default;
+
+    const keyId = process.env.RAZORPAY_KEY_ID;
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+
+    if (!keyId || !keySecret) {
+      return NextResponse.json(
+        { error: "Payment gateway not configured. Please contact support." },
+        { status: 503 }
+      );
+    }
+
+    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+
     const { plan, billing, userId, userEmail } = await request.json();
 
     if (!plan || !billing || !userId) {
@@ -28,15 +37,10 @@ export async function POST(request: Request) {
     const amount = billing === "yearly" ? planInfo.yearly : planInfo.monthly;
 
     const order = await razorpay.orders.create({
-      amount,           // in paise (₹1 = 100 paise)
+      amount,
       currency: "INR",
       receipt: `receipt_${userId}_${plan}_${Date.now()}`,
-      notes: {
-        userId,
-        userEmail: userEmail || "",
-        plan,
-        billing,
-      },
+      notes: { userId, userEmail: userEmail || "", plan, billing },
     });
 
     return NextResponse.json({
