@@ -31,12 +31,17 @@ const DashboardChart = dynamic(() => import("@/components/DashboardChart"), {
   loading: () => <div className="h-80 w-full animate-pulse rounded-xl bg-gray-800/10" />,
 });
 
+const TradingViewChart = dynamic(() => import("@/components/TradingViewChart"), {
+  ssr: false,
+  loading: () => <div className="h-[480px] w-full animate-pulse rounded-xl bg-gray-800/10" />,
+});
+
 export default function Dashboard() {
-  const { user, userSettings } = useAuth();
+  const { user, userSettings, accountMode, tradesCollection } = useAuth();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
   const [demoLoading, setDemoLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<"equity" | "calendar" | "heatmap">("equity");
+  const [activeTab, setActiveTab] = useState<"equity" | "calendar" | "tradingview">("equity");
 
   const initialEquity = userSettings?.brokerSettings?.defaultEquity || 10000;
 
@@ -44,7 +49,7 @@ export default function Dashboard() {
     if (!user) return;
     setLoading(true);
     try {
-      const q = query(collection(db, "trades"), where("userId", "==", user.uid));
+      const q = query(collection(db, tradesCollection), where("userId", "==", user.uid));
       const querySnapshot = await getDocs(q);
       const fetchedTrades: Trade[] = [];
       querySnapshot.forEach((doc) => {
@@ -60,7 +65,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchTrades();
-  }, [user]);
+  }, [user, tradesCollection]);
 
   const handleGenerateDemoData = async () => {
     if (!user) return;
@@ -431,6 +436,16 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Demo Mode Banner */}
+      {accountMode === "demo" && (
+        <div className="flex items-center gap-3 px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+          <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <p className="text-sm text-emerald-300 font-medium">
+            Demo Account — All trades are simulated and stored separately from your real account.
+          </p>
+        </div>
+      )}
+
       {/* Dashboard Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -438,7 +453,7 @@ export default function Dashboard() {
             Trader Dashboard
           </h1>
           <p className="text-sm text-gray-400 mt-1">
-            Analyze your performance, track win streaks, and review your AI analytics.
+            {accountMode === "demo" ? "Demo account — practice trading without risking real money." : "Analyze your performance, track win streaks, and review your AI analytics."}
           </p>
         </div>
 
@@ -627,10 +642,10 @@ export default function Dashboard() {
           {/* Tab Selector & Main Performance Area */}
           <div className="glass-card rounded-2xl p-6">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-800 pb-4 mb-6 gap-4">
-              <div className="flex items-center gap-2 bg-[#090e1f] p-1 rounded-lg border border-gray-800">
+              <div className="flex items-center gap-1 bg-[#090e1f] p-1 rounded-lg border border-gray-800 flex-wrap">
                 <button
                   onClick={() => setActiveTab("equity")}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                     activeTab === "equity"
                       ? "bg-blue-600 text-white"
                       : "text-gray-400 hover:text-gray-200"
@@ -640,13 +655,23 @@ export default function Dashboard() {
                 </button>
                 <button
                   onClick={() => setActiveTab("calendar")}
-                  className={`px-4 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer ${
                     activeTab === "calendar"
                       ? "bg-blue-600 text-white"
                       : "text-gray-400 hover:text-gray-200"
                   }`}
                 >
-                  Trading Calendar
+                  Calendar
+                </button>
+                <button
+                  onClick={() => setActiveTab("tradingview")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-colors cursor-pointer flex items-center gap-1 ${
+                    activeTab === "tradingview"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-400 hover:text-gray-200"
+                  }`}
+                >
+                  <span>📈</span> Pine Script
                 </button>
               </div>
 
@@ -665,6 +690,11 @@ export default function Dashboard() {
             {/* Equity Curve Graph */}
             {activeTab === "equity" && (
               <DashboardChart data={chartData} />
+            )}
+
+            {/* TradingView Pine Script Chart */}
+            {activeTab === "tradingview" && (
+              <TradingViewChart />
             )}
 
             {/* Trading Calendar Grid */}

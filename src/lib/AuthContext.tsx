@@ -5,12 +5,17 @@ import { User, onAuthStateChanged, signOut as firebaseSignOut } from "firebase/a
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, db } from "./firebase";
 
+type AccountMode = "real" | "demo";
+
 interface AuthContextType {
   user: User | null;
   loading: boolean;
   logout: () => Promise<void>;
   userSettings: any;
   refreshSettings: () => Promise<void>;
+  accountMode: AccountMode;
+  setAccountMode: (mode: AccountMode) => void;
+  tradesCollection: string; // "trades" or "demo_trades"
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -19,12 +24,25 @@ const AuthContext = createContext<AuthContextType>({
   logout: async () => {},
   userSettings: null,
   refreshSettings: async () => {},
+  accountMode: "real",
+  setAccountMode: () => {},
+  tradesCollection: "trades",
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [userSettings, setUserSettings] = useState<any>(null);
+  const [accountMode, setAccountModeState] = useState<AccountMode>("real");
+
+  const tradesCollection = accountMode === "demo" ? "demo_trades" : "trades";
+
+  const setAccountMode = (mode: AccountMode) => {
+    setAccountModeState(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("tradesense_account_mode", mode);
+    }
+  };
 
   const loadUserSettings = async (currentUser: User) => {
     try {
@@ -39,10 +57,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           theme: "dark",
           language: "en",
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          plan: "free",
           brokerSettings: {
             defaultLotSize: 0.1,
             defaultRiskPct: 1,
             defaultBroker: "MetaTrader 5",
+            defaultEquity: 10000,
           },
           notifications: {
             dailyReminder: true,
@@ -58,7 +78,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     } catch (error) {
       console.error("Error loading user settings:", error);
-      // Don't block loading on settings error
     }
   };
 
@@ -68,10 +87,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
-    // Safety timeout - max 3s on slow connections
-    const timeout = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
+    // Restore account mode from localStorage
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("tradesense_account_mode") as AccountMode | null;
+      if (saved === "demo" || saved === "real") setAccountModeState(saved);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setLoading(false), 3000);
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       clearTimeout(timeout);
@@ -104,11 +128,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (error) {
       console.error("Logout error:", error);
     }
-    // Never set loading=true here — avoids infinite spinner on logout
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, logout, userSettings, refreshSettings }}>
+    <AuthContext.Provider value={{ user, loading, logout, userSettings, refreshSettings, accountMode, setAccountMode, tradesCollection }}>
       {children}
     </AuthContext.Provider>
   );

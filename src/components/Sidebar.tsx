@@ -13,12 +13,14 @@ import {
   Eye,
   Target,
   MessageSquare,
-  FileText,
   Settings,
   LogOut,
   User as UserIcon,
   Menu,
   X,
+  Crown,
+  Zap,
+  FlaskConical,
 } from "lucide-react";
 
 const menuItems = [
@@ -30,14 +32,13 @@ const menuItems = [
   { name: "Watchlist", href: "/watchlist", icon: Eye },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "AI Coach", href: "/ai-coach", icon: MessageSquare },
-  { name: "Reports", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout } = useAuth();
+  const { user, logout, accountMode, setAccountMode } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -47,6 +48,41 @@ export default function Sidebar() {
     } catch {}
     setMobileOpen(false);
   };
+
+  const AccountToggle = () => (
+    <div className="mx-3 mb-3">
+      <p className="text-[9px] uppercase tracking-wider text-gray-600 font-semibold mb-1.5 px-1">Account</p>
+      <div className="flex rounded-lg overflow-hidden border border-gray-800 bg-[#0a0f1e]">
+        <button
+          onClick={() => setAccountMode("real")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
+            accountMode === "real"
+              ? "bg-blue-600 text-white"
+              : "text-gray-500 hover:text-gray-300"
+          }`}
+        >
+          <Zap className="h-3 w-3" />
+          Real
+        </button>
+        <button
+          onClick={() => setAccountMode("demo")}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all cursor-pointer ${
+            accountMode === "demo"
+              ? "bg-emerald-600 text-white"
+              : "text-gray-500 hover:text-gray-300"
+          }`}
+        >
+          <FlaskConical className="h-3 w-3" />
+          Demo
+        </button>
+      </div>
+      {accountMode === "demo" && (
+        <p className="text-[9px] text-emerald-500 text-center mt-1 font-medium">
+          ● Demo mode — trades are simulated
+        </p>
+      )}
+    </div>
+  );
 
   const NavLinks = () => (
     <nav className="flex-1 overflow-y-auto py-2 space-y-0.5">
@@ -58,17 +94,31 @@ export default function Sidebar() {
             key={item.href}
             href={item.href}
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
               isActive
                 ? "bg-blue-600/15 text-blue-400 border-l-2 border-blue-500"
                 : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-200"
             }`}
           >
-            <Icon className="h-5 w-5 shrink-0" />
+            <Icon className="h-4.5 w-4.5 shrink-0" />
             <span>{item.name}</span>
           </Link>
         );
       })}
+
+      {/* Premium CTA */}
+      <Link
+        href="/premium"
+        onClick={() => setMobileOpen(false)}
+        className={`flex items-center gap-3 px-4 py-2.5 text-sm font-semibold transition-colors mt-1 ${
+          pathname === "/premium"
+            ? "bg-yellow-500/15 text-yellow-400 border-l-2 border-yellow-500"
+            : "text-yellow-500 hover:bg-yellow-500/10 hover:text-yellow-400"
+        }`}
+      >
+        <Crown className="h-4.5 w-4.5 shrink-0" />
+        <span>Upgrade to Premium</span>
+      </Link>
     </nav>
   );
 
@@ -90,6 +140,7 @@ export default function Sidebar() {
         </div>
 
         <NavLinks />
+        <AccountToggle />
 
         {/* User footer */}
         <div className="border-t border-gray-800/60 p-3 shrink-0">
@@ -118,6 +169,11 @@ export default function Sidebar() {
           <span className="text-sm font-bold bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
             TradeSense AI
           </span>
+          {accountMode === "demo" && (
+            <span className="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-400 text-[9px] font-bold rounded uppercase tracking-wider">
+              Demo
+            </span>
+          )}
         </div>
         <button
           onClick={() => setMobileOpen(true)}
@@ -131,12 +187,10 @@ export default function Sidebar() {
       {/* ── MOBILE DRAWER ───────────────────────── */}
       {mobileOpen && (
         <div className="md:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/70"
             onClick={() => setMobileOpen(false)}
           />
-          {/* Drawer */}
           <aside className="relative z-50 flex w-72 max-w-[85vw] flex-col bg-[#07090f] border-r border-gray-800 h-full shadow-2xl">
             {/* Drawer header */}
             <div className="flex items-center justify-between px-4 h-14 border-b border-gray-800 shrink-0">
@@ -172,6 +226,7 @@ export default function Sidebar() {
             </div>
 
             <NavLinks />
+            <AccountToggle />
 
             {/* Sign out */}
             <div className="p-3 border-t border-gray-800 shrink-0">
