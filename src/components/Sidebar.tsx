@@ -21,6 +21,7 @@ import {
   Crown,
   Zap,
   FlaskConical,
+  Trees,
 } from "lucide-react";
 
 const menuItems = [
@@ -30,6 +31,7 @@ const menuItems = [
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Psychology", href: "/psychology", icon: BrainCircuit },
   { name: "Watchlist", href: "/watchlist", icon: Eye },
+  { name: "Pine Script", href: "/pine-script", icon: Trees },
   { name: "Goals", href: "/goals", icon: Target },
   { name: "AI Coach", href: "/ai-coach", icon: MessageSquare },
   { name: "Settings", href: "/settings", icon: Settings },
