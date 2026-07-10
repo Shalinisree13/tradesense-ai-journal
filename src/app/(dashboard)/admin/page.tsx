@@ -450,19 +450,25 @@ export default function AdminDashboard() {
                           {t.action}
                         </span>
                       </td>
-                      <td className="p-3.5 font-mono">${t.price.toLocaleString()}</td>
-                      <td className="p-3.5 font-mono">{t.quantity}</td>
+                      <td className="p-3.5 font-mono">
+                        {t.price !== undefined && t.price !== null ? `$${Number(t.price).toLocaleString()}` : "-"}
+                      </td>
+                      <td className="p-3.5 font-mono">
+                        {t.quantity !== undefined && t.quantity !== null ? t.quantity : "-"}
+                      </td>
                       <td className={`p-3.5 font-mono font-bold ${
-                        t.pnl && t.pnl >= 0 ? "text-emerald-400" : "text-red-400"
+                        t.pnl && Number(t.pnl) >= 0 ? "text-emerald-400" : "text-red-400"
                       }`}>
-                        {t.pnl ? `${t.pnl >= 0 ? "+" : ""}$${t.pnl.toLocaleString()}` : "-"}
+                        {t.pnl !== undefined && t.pnl !== null ? `${Number(t.pnl) >= 0 ? "+" : ""}$${Number(t.pnl).toLocaleString()}` : "-"}
                       </td>
                       <td className="p-3.5">
                         <span className="px-1.5 py-0.5 bg-gray-900 text-gray-400 rounded text-[9px] uppercase">
                           {t.status}
                         </span>
                       </td>
-                      <td className="p-3.5 text-gray-500 font-mono">{new Date(t.createdAt).toLocaleDateString()}</td>
+                      <td className="p-3.5 text-gray-500 font-mono">
+                        {t.createdAt ? new Date(t.createdAt).toLocaleDateString() : "-"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -490,8 +496,12 @@ export default function AdminDashboard() {
                         <div className="font-semibold">{w.userEmail}</div>
                       </td>
                       <td className="p-3.5 font-bold text-yellow-500">{w.symbol}</td>
-                      <td className="p-3.5 font-mono">${w.alertPrice.toLocaleString()}</td>
-                      <td className="p-3.5 font-mono">${w.target.toLocaleString()}</td>
+                      <td className="p-3.5 font-mono">
+                        {w.alertPrice !== undefined && w.alertPrice !== null ? `$${Number(w.alertPrice).toLocaleString()}` : "-"}
+                      </td>
+                      <td className="p-3.5 font-mono">
+                        {w.target !== undefined && w.target !== null ? `$${Number(w.target).toLocaleString()}` : "-"}
+                      </td>
                       <td className="p-3.5">
                         <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
                           w.status === "active" ? "bg-emerald-500/10 text-emerald-400" : "bg-gray-800 text-gray-500"
@@ -529,8 +539,12 @@ export default function AdminDashboard() {
                         <div className="font-semibold">{g.userEmail}</div>
                       </td>
                       <td className="p-3.5 font-bold text-gray-200">{g.title}</td>
-                      <td className="p-3.5 font-mono">${g.targetProfit.toLocaleString()}</td>
-                      <td className="p-3.5 font-mono">${g.currentProfit.toLocaleString()}</td>
+                      <td className="p-3.5 font-mono">
+                        {g.targetProfit !== undefined && g.targetProfit !== null ? `$${Number(g.targetProfit).toLocaleString()}` : "-"}
+                      </td>
+                      <td className="p-3.5 font-mono">
+                        {g.currentProfit !== undefined && g.currentProfit !== null ? `$${Number(g.currentProfit).toLocaleString()}` : "-"}
+                      </td>
                       <td className="p-3.5 text-gray-500">{g.timeframe}</td>
                       <td className="p-3.5">
                         <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase ${
@@ -572,10 +586,12 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="p-3.5 font-mono font-bold text-gray-200">
-                        ₹{(p.amount / 100).toLocaleString()}
+                        {p.amount !== undefined && p.amount !== null ? `₹${(p.amount / 100).toLocaleString()}` : "-"}
                       </td>
                       <td className="p-3.5 uppercase font-semibold text-gray-500">{p.billing}</td>
-                      <td className="p-3.5 font-mono text-gray-500">{new Date(p.paidAt).toLocaleDateString()}</td>
+                      <td className="p-3.5 font-mono text-gray-500">
+                        {p.paidAt ? new Date(p.paidAt).toLocaleDateString() : "-"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
