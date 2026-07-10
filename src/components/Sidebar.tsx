@@ -23,6 +23,7 @@ import {
   FlaskConical,
   Trees,
   Cpu,
+  Shield,
 } from "lucide-react";
 
 const menuItems = [
@@ -42,8 +43,14 @@ const menuItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, logout, accountMode, setAccountMode } = useAuth();
+  const { user, logout, accountMode, setAccountMode, userSettings } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isAdmin = userSettings?.role === "admin" || [
+    "chippadadhanush10260@gmail.com",
+    "shalinisree13@gmail.com",
+    "admin@tradesense.com"
+  ].includes(user?.email || "");
 
   const handleLogout = async () => {
     try {
@@ -109,6 +116,22 @@ export default function Sidebar() {
           </Link>
         );
       })}
+
+      {/* Admin Panel Link */}
+      {isAdmin && (
+        <Link
+          href="/admin"
+          onClick={() => setMobileOpen(false)}
+          className={`flex items-center gap-3 px-4 py-2.5 text-sm font-medium transition-colors ${
+            pathname === "/admin"
+              ? "bg-purple-600/15 text-purple-400 border-l-2 border-purple-500"
+              : "text-gray-400 hover:bg-gray-800/50 hover:text-gray-200"
+          }`}
+        >
+          <Shield className="h-4.5 w-4.5 shrink-0" />
+          <span>Admin Panel</span>
+        </Link>
+      )}
 
       {/* Premium CTA */}
       <Link
