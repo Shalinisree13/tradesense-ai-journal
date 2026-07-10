@@ -108,11 +108,45 @@ export default function AdminDashboard() {
     if (!isAdmin) return;
     setLoading(true);
     try {
-      // 1. Fetch registered users profiles
+      // 1. Fetch registered users profiles from the "users" collection
+      const usersSnap = await getDocs(collection(db, "users"));
+      const userProfiles: any[] = [];
+      usersSnap.forEach((doc) => {
+        userProfiles.push({ userId: doc.id, ...doc.data() });
+      });
+
+      // 1b. Fetch settings config details
       const settingsSnap = await getDocs(collection(db, "settings"));
-      const userList: UserProfile[] = [];
+      const settingsMap: Record<string, any> = {};
       settingsSnap.forEach((doc) => {
-        userList.push({ userId: doc.id, ...doc.data() } as UserProfile);
+        settingsMap[doc.id] = doc.data();
+      });
+
+      // Merge profiles with settings attributes
+      const userList: UserProfile[] = userProfiles.map((p) => {
+        const settings = settingsMap[p.userId] || {};
+        return {
+          userId: p.userId,
+          email: p.email || "unknown@trader.com",
+          plan: settings.plan || "free",
+          role: settings.role || "user",
+          createdAt: p.createdAt || settings.createdAt,
+        };
+      });
+
+      // Ensure any setting-only configurations (like custom admins) are included
+      Object.keys(settingsMap).forEach((uid) => {
+        const alreadyAdded = userList.find((u) => u.userId === uid);
+        if (!alreadyAdded) {
+          const settings = settingsMap[uid];
+          userList.push({
+            userId: uid,
+            email: settings.email || "unknown@trader.com",
+            plan: settings.plan || "free",
+            role: settings.role || "user",
+            createdAt: settings.createdAt,
+          });
+        }
       });
 
       // Helper function to match emails
