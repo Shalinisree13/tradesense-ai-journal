@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, collection, addDoc } from "firebase/firestore";
 import { Loader2, Mail, Lock, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
@@ -78,12 +78,42 @@ export default function LoginPage() {
           await setDoc(settingsRef, adminSettings);
         }
 
+        // Log admin login activity
+        try {
+          await addDoc(collection(db, "user_activities"), {
+            userId: adminUser.uid,
+            email: normEmail,
+            action: "login",
+            role: "admin",
+            timestamp: new Date().toISOString(),
+            userAgent: typeof window !== "undefined" ? navigator.userAgent : "Unknown",
+          });
+        } catch (err) {
+          console.error("Activity logging error:", err);
+        }
+
         router.push("/dashboard");
         return;
       }
 
       // Normal user login flow
-      await signInWithEmailAndPassword(auth, normEmail, password);
+      const res = await signInWithEmailAndPassword(auth, normEmail, password);
+      const user = res.user;
+
+      // Log user login activity
+      try {
+        await addDoc(collection(db, "user_activities"), {
+          userId: user.uid,
+          email: normEmail,
+          action: "login",
+          role: "user",
+          timestamp: new Date().toISOString(),
+          userAgent: typeof window !== "undefined" ? navigator.userAgent : "Unknown",
+        });
+      } catch (err) {
+        console.error("Activity logging error:", err);
+      }
+
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
@@ -131,6 +161,20 @@ export default function LoginPage() {
         };
         await setDoc(settingsRef, defaultSettings);
       }
+
+      // Log Google login activity
+      try {
+        await addDoc(collection(db, "user_activities"), {
+          userId: user.uid,
+          email: user.email || "google@user.com",
+          action: "login",
+          role: "user (Google)",
+          timestamp: new Date().toISOString(),
+          userAgent: typeof window !== "undefined" ? navigator.userAgent : "Unknown",
+        });
+      } catch (err) {
+        console.error("Activity logging error:", err);
+      }
       
       router.push("/dashboard");
     } catch (err: any) {
@@ -151,11 +195,11 @@ export default function LoginPage() {
       )}
 
       <div className="w-full max-w-md space-y-6 glass-card p-8 rounded-2xl relative z-10 border border-gray-800/80">
-        <div className="text-center">
-          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-500 p-0.5 shadow-lg shadow-blue-500/20">
+        <div className="text-center flex flex-col items-center">
+          <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-500 p-0.5 shadow-lg shadow-blue-500/20 mb-3.5">
             <span className="text-lg font-bold text-white tracking-wider">TS</span>
           </div>
-          <h2 className="mt-4 text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+          <h2 className="pb-1 text-2xl font-black bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent leading-normal">
             {loginMode === "admin" ? "Admin Workspace Portal" : "Welcome back"}
           </h2>
           <p className="mt-1 text-xs text-gray-400">
