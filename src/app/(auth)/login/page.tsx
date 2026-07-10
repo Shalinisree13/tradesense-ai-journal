@@ -117,7 +117,9 @@ export default function LoginPage() {
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
-      if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
+      if (err.code === "auth/email-already-in-use") {
+        setError('The admin account "shalinisree13@gmail.com" already exists with a different password. Please log in with the correct password, or delete this user from the Firebase Console Authentication tab to allow recreation.');
+      } else if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password" || err.code === "auth/invalid-credential") {
         setError("Invalid email or password. Please try again.");
       } else {
         setError(err.message || "Failed to log in.");
