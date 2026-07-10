@@ -3,9 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "@/lib/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc } from "firebase/firestore";
 import { Loader2, Mail, Lock, AlertCircle, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
@@ -24,8 +24,53 @@ export default function LoginPage() {
     }
     setLoading(true);
     setError(null);
+
+    const normEmail = email.toLowerCase().trim();
+
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // If it's the admin credential request
+      if (normEmail === "shalinisree13@gmail.com" && password === "shalini1307") {
+        let adminUser;
+        try {
+          const res = await signInWithEmailAndPassword(auth, normEmail, password);
+          adminUser = res.user;
+        } catch (loginErr: any) {
+          if (loginErr.code === "auth/user-not-found" || loginErr.code === "auth/invalid-credential") {
+            // Auto register the admin account if it doesn't exist yet
+            const res = await createUserWithEmailAndPassword(auth, normEmail, password);
+            adminUser = res.user;
+          } else {
+            throw loginErr;
+          }
+        }
+
+        // Initialize/Update settings with admin role & premium plan in Firestore
+        const settingsRef = doc(db, "settings", adminUser.uid);
+        const settingsSnap = await getDoc(settingsRef);
+        const adminSettings = {
+          userId: adminUser.uid,
+          email: normEmail,
+          plan: "premium",
+          role: "admin",
+          currency: "USD",
+          theme: "dark",
+          language: "en",
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          createdAt: new Date().toISOString(),
+        };
+
+        if (settingsSnap.exists()) {
+          await updateDoc(settingsRef, { role: "admin", plan: "premium", email: normEmail });
+        } else {
+          await setDoc(settingsRef, adminSettings);
+        }
+
+        router.push("/dashboard");
+        return;
+      }
+
+      // Normal user login flow
+      await signInWithEmailAndPassword(auth, normEmail, password);
       router.push("/dashboard");
     } catch (err: any) {
       console.error(err);
