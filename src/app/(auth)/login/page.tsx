@@ -14,7 +14,20 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [loginMode, setLoginMode] = useState<"trader" | "admin">("trader");
   const router = useRouter();
+
+  const handleModeChange = (mode: "trader" | "admin") => {
+    setLoginMode(mode);
+    setError(null);
+    if (mode === "admin") {
+      setEmail("shalinisree13@gmail.com");
+      setPassword("shalini1307");
+    } else {
+      setEmail("");
+      setPassword("");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -133,36 +146,61 @@ export default function LoginPage() {
       {/* Background Gradient Orbs */}
       <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none" />
+      {loginMode === "admin" && (
+        <div className="absolute inset-0 bg-purple-600/5 mix-blend-color pointer-events-none" />
+      )}
 
-      <div className="w-full max-w-md space-y-8 glass-card p-8 rounded-2xl relative z-10">
+      <div className="w-full max-w-md space-y-6 glass-card p-8 rounded-2xl relative z-10 border border-gray-800/80">
         <div className="text-center">
           <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-tr from-blue-600 to-emerald-500 p-0.5 shadow-lg shadow-blue-500/20">
             <span className="text-lg font-bold text-white tracking-wider">TS</span>
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold tracking-normal bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
-            Welcome back
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+            {loginMode === "admin" ? "Admin Workspace Portal" : "Welcome back"}
           </h2>
-          <p className="mt-2 text-sm text-gray-400">
-            Log in to manage your trades with AI insights.
+          <p className="mt-1 text-xs text-gray-400">
+            {loginMode === "admin" ? "Provide supervisor authorization keys." : "Log in to manage your trades with AI insights."}
           </p>
         </div>
 
+        {/* Tab Selection Switcher */}
+        <div className="flex rounded-lg overflow-hidden border border-gray-800 bg-[#0a0f1e] p-0.5">
+          <button
+            type="button"
+            onClick={() => handleModeChange("trader")}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded cursor-pointer transition-all ${
+              loginMode === "trader" ? "bg-blue-600 text-white" : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            Trader Sign In
+          </button>
+          <button
+            type="button"
+            onClick={() => handleModeChange("admin")}
+            className={`flex-1 py-1.5 text-xs font-semibold rounded cursor-pointer transition-all ${
+              loginMode === "admin" ? "bg-purple-600 text-white" : "text-gray-500 hover:text-gray-300"
+            }`}
+          >
+            🛡️ Admin Sign In
+          </button>
+        </div>
+
         {error && (
-          <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-sm text-red-400">
-            <AlertCircle className="h-5 w-5 shrink-0" />
+          <div className="flex items-center gap-2 rounded-lg bg-red-500/10 border border-red-500/20 p-3 text-xs text-red-400">
+            <AlertCircle className="h-4.5 w-4.5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form className="mt-8 space-y-6" onSubmit={handleLogin}>
-          <div className="space-y-4 rounded-md shadow-sm">
+        <form className="space-y-5" onSubmit={handleLogin}>
+          <div className="space-y-3.5">
             <div>
               <label htmlFor="email-address" className="sr-only">
                 Email address
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                  <Mail className="h-5 w-5" />
+                  <Mail className="h-4 w-4" />
                 </div>
                 <input
                   id="email-address"
@@ -172,7 +210,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="glass-input block w-full pl-10 sm:text-sm"
+                  className="glass-input block w-full pl-9 sm:text-xs"
                   placeholder="Email address"
                 />
               </div>
@@ -184,7 +222,7 @@ export default function LoginPage() {
               </label>
               <div className="relative">
                 <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500">
-                  <Lock className="h-5 w-5" />
+                  <Lock className="h-4 w-4" />
                 </div>
                 <input
                   id="password"
@@ -194,22 +232,22 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="glass-input block w-full pl-10 sm:text-sm"
+                  className="glass-input block w-full pl-9 sm:text-xs"
                   placeholder="Password"
                 />
               </div>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center justify-between text-xs">
             <div className="flex items-center">
               <input
                 id="remember-me"
                 name="remember-me"
                 type="checkbox"
-                className="h-4 w-4 rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-blue-500/50"
+                className="h-3.5 w-3.5 rounded border-gray-700 bg-gray-900 text-blue-600 focus:ring-blue-500/50"
               />
-              <label htmlFor="remember-me" className="ml-2 block text-gray-400">
+              <label htmlFor="remember-me" className="ml-1.5 block text-gray-400">
                 Remember me
               </label>
             </div>
@@ -225,29 +263,36 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="group relative flex w-full justify-center rounded-xl bg-gradient-to-r from-blue-600 to-blue-500 py-3 px-4 text-sm font-semibold text-white shadow-lg shadow-blue-500/20 hover:from-blue-500 hover:to-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+            className={`group relative flex w-full justify-center rounded-xl py-2.5 px-4 text-xs font-semibold text-white shadow-lg transition-all duration-200 disabled:opacity-50 disabled:pointer-events-none cursor-pointer ${
+              loginMode === "admin"
+                ? "bg-gradient-to-r from-purple-600 to-purple-500 shadow-purple-500/20 hover:from-purple-500 hover:to-purple-400 focus:ring-purple-500/50"
+                : "bg-gradient-to-r from-blue-600 to-blue-500 shadow-blue-500/20 hover:from-blue-500 hover:to-blue-400 focus:ring-blue-500/50"
+            }`}
           >
             {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
               <span className="flex items-center gap-1">
-                Log In <ArrowRight className="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
+                {loginMode === "admin" ? "Authorize Admin Access" : "Log In"}{" "}
+                <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-0.5 transition-transform" />
               </span>
             )}
           </button>
         </form>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-800"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="bg-[#0b1329] px-2 text-gray-500">Or continue with</span>
-          </div>
-        </div>
+        {loginMode === "trader" && (
+          <>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-800"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-[#020617] px-2 text-gray-500">Or continue with</span>
+              </div>
+            </div>
 
-        <button
-          onClick={handleGoogleLogin}
+            <button
+              onClick={handleGoogleLogin}
           disabled={googleLoading}
           type="button"
           className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-800 bg-[#0f172a] hover:bg-[#1e293b] py-3 px-4 text-sm font-medium text-white transition-colors cursor-pointer"
@@ -278,6 +323,8 @@ export default function LoginPage() {
             </>
           )}
         </button>
+        </>
+        )}
 
         <p className="text-center text-sm text-gray-400">
           Don't have an account?{" "}
