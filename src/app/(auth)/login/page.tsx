@@ -256,7 +256,7 @@ export default function LoginPage() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="glass-input block w-full pl-9 sm:text-xs"
+                  className="glass-input block w-full pl-10 sm:text-xs"
                   placeholder="Email address"
                 />
               </div>
@@ -278,7 +278,7 @@ export default function LoginPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="glass-input block w-full pl-9 sm:text-xs"
+                  className="glass-input block w-full pl-10 sm:text-xs"
                   placeholder="Password"
                 />
               </div>
